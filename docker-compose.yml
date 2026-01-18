@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  dashboard:
+    build: ./apps/dashboard
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+  api:
+    build: ./apps/api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - ai
+      - economy
+      - blockchain
+
+  ai:
+    build: ./services/ai
+    ports:
+      - "8001:8000"
+
+  economy:
+    build: ./services/economy
+    ports:
+      - "8002:8000"
+
+  blockchain:
+    build: ./services/blockchain
+    ports:
+      - "8003:8000"
