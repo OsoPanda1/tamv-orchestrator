@@ -14,11 +14,14 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Hexagon
+  Hexagon,
+  Menu,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TAMV_LAYERS, LayerId } from '@/lib/constants';
-import { getLayerProgress } from '@/lib/mock-data';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
 
 const iconMap = {
   Fingerprint,
@@ -35,11 +38,23 @@ interface SidebarProps {
   onViewChange: (view: string) => void;
   activeLayer: LayerId | null;
   onLayerChange: (layer: LayerId | null) => void;
+  layerProgress?: Record<LayerId, number>;
 }
 
-export function Sidebar({ activeView, onViewChange, activeLayer, onLayerChange }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
-
+function SidebarContent({ 
+  activeView, 
+  onViewChange, 
+  activeLayer, 
+  onLayerChange, 
+  layerProgress,
+  collapsed,
+  setCollapsed,
+  onClose 
+}: SidebarProps & { 
+  collapsed: boolean; 
+  setCollapsed: (v: boolean) => void;
+  onClose?: () => void;
+}) {
   const mainNav = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'repositories', label: 'Repositorios', icon: GitBranch },
@@ -48,13 +63,20 @@ export function Sidebar({ activeView, onViewChange, activeLayer, onLayerChange }
     { id: 'settings', label: 'Configuración', icon: Settings },
   ];
 
+  const handleNavClick = (id: string) => {
+    onViewChange(id);
+    onLayerChange(null);
+    onClose?.();
+  };
+
+  const handleLayerClick = (layerId: LayerId) => {
+    onLayerChange(layerId);
+    onViewChange('layer');
+    onClose?.();
+  };
+
   return (
-    <aside 
-      className={cn(
-        "fixed left-0 top-0 h-full bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 z-50",
-        collapsed ? "w-16" : "w-64"
-      )}
-    >
+    <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
@@ -70,7 +92,7 @@ export function Sidebar({ activeView, onViewChange, activeLayer, onLayerChange }
         </div>
         <button 
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1 rounded hover:bg-muted transition-colors"
+          className="p-1 rounded hover:bg-muted transition-colors hidden lg:block"
         >
           {collapsed ? (
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -91,10 +113,7 @@ export function Sidebar({ activeView, onViewChange, activeLayer, onLayerChange }
           {mainNav.map((item) => (
             <button
               key={item.id}
-              onClick={() => {
-                onViewChange(item.id);
-                onLayerChange(null);
-              }}
+              onClick={() => handleNavClick(item.id)}
               className={cn(
                 "sidebar-item w-full",
                 activeView === item.id && !activeLayer && "active"
@@ -115,15 +134,12 @@ export function Sidebar({ activeView, onViewChange, activeLayer, onLayerChange }
           )}
           {TAMV_LAYERS.map((layer) => {
             const Icon = iconMap[layer.icon as keyof typeof iconMap];
-            const progress = getLayerProgress(layer.id);
+            const progress = layerProgress?.[layer.id] || 0;
             
             return (
               <button
                 key={layer.id}
-                onClick={() => {
-                  onLayerChange(layer.id);
-                  onViewChange('layer');
-                }}
+                onClick={() => handleLayerClick(layer.id)}
                 className={cn(
                   "sidebar-item w-full group",
                   activeLayer === layer.id && "active"
@@ -169,6 +185,51 @@ export function Sidebar({ activeView, onViewChange, activeLayer, onLayerChange }
           </div>
         </div>
       )}
-    </aside>
+    </div>
+  );
+}
+
+export function Sidebar(props: SidebarProps) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  return (
+    <>
+      {/* Mobile Menu Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-4 left-4 z-50 lg:hidden bg-background/80 backdrop-blur-sm border border-border"
+        onClick={() => setMobileOpen(true)}
+      >
+        <Menu className="w-5 h-5" />
+      </Button>
+
+      {/* Mobile Sidebar */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="left" className="p-0 w-72 bg-sidebar border-sidebar-border">
+          <SidebarContent 
+            {...props} 
+            collapsed={false} 
+            setCollapsed={() => {}} 
+            onClose={() => setMobileOpen(false)}
+          />
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop Sidebar */}
+      <aside 
+        className={cn(
+          "fixed left-0 top-0 h-full bg-sidebar border-r border-sidebar-border flex-col transition-all duration-300 z-40 hidden lg:flex",
+          collapsed ? "w-16" : "w-64"
+        )}
+      >
+        <SidebarContent 
+          {...props} 
+          collapsed={collapsed} 
+          setCollapsed={setCollapsed}
+        />
+      </aside>
+    </>
   );
 }

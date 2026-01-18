@@ -7,8 +7,6 @@ import {
   Scale, 
   FileText 
 } from 'lucide-react';
-import { TAMV_LAYERS, LayerId } from '@/lib/constants';
-import { getLayerProgress, mockModules } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 
 const iconMap = {
@@ -22,14 +20,20 @@ const iconMap = {
 };
 
 interface LayerProgressCardProps {
-  layer: typeof TAMV_LAYERS[number];
+  layer: {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    color: string;
+  };
+  progress: number;
+  moduleCount: number;
   onClick?: () => void;
 }
 
-export function LayerProgressCard({ layer, onClick }: LayerProgressCardProps) {
+export function LayerProgressCard({ layer, progress, moduleCount, onClick }: LayerProgressCardProps) {
   const Icon = iconMap[layer.icon as keyof typeof iconMap];
-  const progress = getLayerProgress(layer.id);
-  const moduleCount = mockModules.filter(m => m.layer === layer.id).length;
 
   return (
     <button
@@ -47,16 +51,16 @@ export function LayerProgressCard({ layer, onClick }: LayerProgressCardProps) {
           />
         </div>
         <div>
-          <h3 className="font-semibold text-foreground">{layer.name}</h3>
+          <h3 className="font-semibold text-foreground text-sm lg:text-base">{layer.name}</h3>
           <p className="text-xs text-muted-foreground">{moduleCount} módulos</p>
         </div>
       </div>
 
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Progreso</span>
+          <span className="text-muted-foreground text-xs lg:text-sm">Progreso</span>
           <span 
-            className="font-mono font-medium"
+            className="font-mono font-medium text-xs lg:text-sm"
             style={{ color: `hsl(var(--${layer.color}))` }}
           >
             {progress}%
@@ -71,7 +75,7 @@ export function LayerProgressCard({ layer, onClick }: LayerProgressCardProps) {
             }}
           />
         </div>
-        <p className="text-[10px] text-muted-foreground line-clamp-1">
+        <p className="text-[10px] text-muted-foreground line-clamp-1 hidden sm:block">
           {layer.description}
         </p>
       </div>

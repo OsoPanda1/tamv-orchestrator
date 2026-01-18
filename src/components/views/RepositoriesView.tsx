@@ -1,19 +1,25 @@
 import { useState } from 'react';
-import { GitBranch, ExternalLink, Plus, Filter } from 'lucide-react';
+import { GitBranch, ExternalLink, Plus, Loader2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { mockRepositories, Repository } from '@/lib/mock-data';
+import { useRepositories, Repository } from '@/hooks/useDatabase';
 import { TAMV_LAYERS, REPO_STATUS, LayerId } from '@/lib/constants';
-import { cn } from '@/lib/utils';
+import { User } from '@supabase/supabase-js';
 
-export function RepositoriesView() {
+interface RepositoriesViewProps {
+  user?: User | null;
+  onLogout?: () => void;
+}
+
+export function RepositoriesView({ user, onLogout }: RepositoriesViewProps) {
   const [search, setSearch] = useState('');
   const [filterLayer, setFilterLayer] = useState<LayerId | 'all'>('all');
+  const { data: repositories, isLoading } = useRepositories();
 
-  const filteredRepos = mockRepositories.filter(repo => {
+  const filteredRepos = (repositories || []).filter(repo => {
     const matchesSearch = repo.name.toLowerCase().includes(search.toLowerCase()) ||
-                          repo.description.toLowerCase().includes(search.toLowerCase());
+                          (repo.description || '').toLowerCase().includes(search.toLowerCase());
     const matchesLayer = filterLayer === 'all' || repo.layer === filterLayer;
     return matchesSearch && matchesLayer;
   });
@@ -22,22 +28,32 @@ export function RepositoriesView() {
     return TAMV_LAYERS.find(l => l.id === layerId);
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <Header 
         title="Repositorios" 
-        subtitle="Gestión de código del ecosistema TAMV" 
+        subtitle="Gestión de código del ecosistema TAMV"
+        user={user}
+        onLogout={onLogout}
       />
 
-      <main className="p-6 space-y-6">
+      <main className="p-4 lg:p-6 space-y-6">
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex flex-1 gap-3 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+          <div className="flex flex-1 gap-3 w-full sm:w-auto flex-col sm:flex-row">
             <Input 
               placeholder="Buscar repositorios..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="max-w-xs command-input"
+              className="w-full sm:max-w-xs command-input"
             />
             <select 
               value={filterLayer}
@@ -50,9 +66,10 @@ export function RepositoriesView() {
               ))}
             </select>
           </div>
-          <Button className="gap-2">
+          <Button className="gap-2 w-full sm:w-auto">
             <Plus className="w-4 h-4" />
-            Nuevo Repositorio
+            <span className="hidden sm:inline">Nuevo Repositorio</span>
+            <span className="sm:hidden">Nuevo</span>
           </Button>
         </div>
 
@@ -68,15 +85,15 @@ export function RepositoriesView() {
                 className="glass-panel p-4 hover:border-primary/30 transition-all group"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-muted">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="p-2 rounded-lg bg-muted flex-shrink-0">
                       <GitBranch className="w-4 h-4 text-primary" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                         {repo.name}
                       </h3>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <span 
                           className="text-[10px] px-1.5 py-0.5 rounded"
                           style={{ 
@@ -100,7 +117,7 @@ export function RepositoriesView() {
                     href={repo.url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="p-1.5 rounded hover:bg-muted transition-colors opacity-0 group-hover:opacity-100"
+                    className="p-1.5 rounded hover:bg-muted transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
                   >
                     <ExternalLink className="w-4 h-4 text-muted-foreground" />
                   </a>
