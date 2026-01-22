@@ -7,6 +7,7 @@ import { TasksView } from '@/components/views/TasksView';
 import { DeploymentsView } from '@/components/views/DeploymentsView';
 import { SettingsView } from '@/components/views/SettingsView';
 import { LayerDetailView } from '@/components/views/LayerDetailView';
+import { FederatedView } from '@/components/views/FederatedView';
 import { LayerId, TAMV_LAYERS } from '@/lib/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useModules, getLayerProgress } from '@/hooks/useDatabase';
@@ -77,6 +78,8 @@ const Index = () => {
         return <DeploymentsView user={user} onLogout={signOut} />;
       case 'settings':
         return <SettingsView user={user} onLogout={signOut} />;
+      case 'federated':
+        return <FederatedView user={user} onLogout={signOut} />;
       default:
         return <DashboardView onLayerClick={handleLayerClick} user={user} onLogout={signOut} />;
     }
