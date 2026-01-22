@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { GitBranch, ExternalLink, Plus, Loader2 } from 'lucide-react';
+import { GitBranch, ExternalLink, Plus, Loader2, Edit, Trash2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useRepositories, Repository } from '@/hooks/useDatabase';
+import { useRepositories } from '@/hooks/useDatabase';
+import { useDeleteRepository } from '@/hooks/useMutations';
+import { RepositoryModal } from '@/components/modals/RepositoryModal';
+import { DeleteConfirmModal } from '@/components/modals/DeleteConfirmModal';
 import { TAMV_LAYERS, REPO_STATUS, LayerId } from '@/lib/constants';
 import { User } from '@supabase/supabase-js';
 
@@ -15,7 +18,15 @@ interface RepositoriesViewProps {
 export function RepositoriesView({ user, onLogout }: RepositoriesViewProps) {
   const [search, setSearch] = useState('');
   const [filterLayer, setFilterLayer] = useState<LayerId | 'all'>('all');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editData, setEditData] = useState<any>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { data: repositories, isLoading } = useRepositories();
+  const deleteMutation = useDeleteRepository();
+
+  const handleEdit = (repo: any) => { setEditData(repo); setModalOpen(true); };
+  const handleDelete = async () => { if (deleteId) { await deleteMutation.mutateAsync(deleteId); setDeleteId(null); } };
+  const handleCloseModal = (open: boolean) => { setModalOpen(open); if (!open) setEditData(null); };
 
   const filteredRepos = (repositories || []).filter(repo => {
     const matchesSearch = repo.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -66,7 +77,7 @@ export function RepositoriesView({ user, onLogout }: RepositoriesViewProps) {
               ))}
             </select>
           </div>
-          <Button className="gap-2 w-full sm:w-auto">
+          <Button className="gap-2 w-full sm:w-auto" onClick={() => setModalOpen(true)}>
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Nuevo Repositorio</span>
             <span className="sm:hidden">Nuevo</span>
@@ -113,14 +124,11 @@ export function RepositoriesView({ user, onLogout }: RepositoriesViewProps) {
                       </div>
                     </div>
                   </div>
-                  <a 
-                    href={repo.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="p-1.5 rounded hover:bg-muted transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
-                  >
-                    <ExternalLink className="w-4 h-4 text-muted-foreground" />
-                  </a>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(repo)}><Edit className="w-3 h-3" /></Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteId(repo.id)}><Trash2 className="w-3 h-3" /></Button>
+                    <a href={repo.url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded hover:bg-muted"><ExternalLink className="w-4 h-4 text-muted-foreground" /></a>
+                  </div>
                 </div>
 
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
@@ -149,6 +157,8 @@ export function RepositoriesView({ user, onLogout }: RepositoriesViewProps) {
           </div>
         )}
       </main>
+      <RepositoryModal open={modalOpen} onOpenChange={handleCloseModal} editData={editData} />
+      <DeleteConfirmModal open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)} onConfirm={handleDelete} title="Eliminar Repositorio" isLoading={deleteMutation.isPending} />
     </div>
   );
 }

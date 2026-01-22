@@ -16,11 +16,11 @@ import {
   ChevronRight,
   Hexagon,
   Menu,
-  X
+  Network
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TAMV_LAYERS, LayerId } from '@/lib/constants';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 
 const iconMap = {
@@ -57,6 +57,7 @@ function SidebarContent({
 }) {
   const mainNav = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'federated', label: 'Sistema Federado', icon: Network, highlight: true },
     { id: 'repositories', label: 'Repositorios', icon: GitBranch },
     { id: 'tasks', label: 'Tareas', icon: ListTodo },
     { id: 'deployments', label: 'Despliegues', icon: Rocket },
@@ -116,11 +117,22 @@ function SidebarContent({
               onClick={() => handleNavClick(item.id)}
               className={cn(
                 "sidebar-item w-full",
-                activeView === item.id && !activeLayer && "active"
+                activeView === item.id && !activeLayer && "active",
+                'highlight' in item && item.highlight && activeView !== item.id && "border border-primary/30 bg-primary/5"
               )}
             >
-              <item.icon className="w-4 h-4 flex-shrink-0" />
-              {!collapsed && <span className="text-sm">{item.label}</span>}
+              <item.icon className={cn(
+                "w-4 h-4 flex-shrink-0",
+                'highlight' in item && item.highlight && "text-primary"
+              )} />
+              {!collapsed && (
+                <span className={cn(
+                  "text-sm",
+                  'highlight' in item && item.highlight && "text-primary font-medium"
+                )}>
+                  {item.label}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -180,7 +192,7 @@ function SidebarContent({
               <span className="text-xs text-muted-foreground">Sistema Activo</span>
             </div>
             <p className="text-[10px] text-muted-foreground font-mono">
-              v0.1.0-alpha • OsoPanda1
+              v1.0.0 • OsoPanda1
             </p>
           </div>
         </div>
