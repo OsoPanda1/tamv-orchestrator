@@ -138,7 +138,7 @@ export function planDispatch(registry, event) {
       type: event.type,
       score: scoreNodeForEvent(node, event),
     }))
-    .sort((a, b) => b.score - a.score || a.nodeId?.localeCompare(b.nodeId));
+    .sort((a, b) => b.score - a.score || a.target.localeCompare(b.target));
 }
 
 export function scoreNodeForEvent(node, event) {
