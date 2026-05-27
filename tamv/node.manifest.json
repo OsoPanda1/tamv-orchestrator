@@ -3,8 +3,8 @@
   "nodeId": "tamv.orchestrator",
   "repository": "OsoPanda1/tamv-orchestrator",
   "role": "orchestrator",
-  "version": "0.1.0",
-  "description": "Central execution graph, recovery state, dispatch planning and TAMV federation registry.",
+  "version": "0.1.1",
+  "description": "Orchestration peer fused into OsoPanda1/oso-data-weaver, which is now the canonical TAMV kernel core.",
   "capabilities": [
     "directed-execution-graph",
     "task-scheduling",
@@ -35,6 +35,7 @@
     "heartbeat": "manual-or-scheduled"
   },
   "links": {
+    "kernel": "OsoPanda1/oso-data-weaver",
     "schema": "tamv/protocol/tamv-federation-v1.schema.json",
     "bus": "tamv/core/federation-bus.mjs"
   }
