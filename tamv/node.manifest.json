@@ -1,0 +1,41 @@
+{
+  "protocol": "tamv-federation-v1",
+  "nodeId": "tamv.orchestrator",
+  "repository": "OsoPanda1/tamv-orchestrator",
+  "role": "orchestrator",
+  "version": "0.1.0",
+  "description": "Central execution graph, recovery state, dispatch planning and TAMV federation registry.",
+  "capabilities": [
+    "directed-execution-graph",
+    "task-scheduling",
+    "state-recovery",
+    "dispatch-planning",
+    "node-registry"
+  ],
+  "channels": {
+    "publishes": [
+      "NODE_HEARTBEAT",
+      "TASK_ASSIGNED",
+      "PIPELINE_STARTED",
+      "PIPELINE_RECOVERED",
+      "QUALITY_REVIEW_REQUESTED"
+    ],
+    "subscribes": [
+      "NODE_HEARTBEAT",
+      "ASSET_READY",
+      "GEOMETRY_READY",
+      "PRINT_TEMPLATE_READY",
+      "QUALITY_SCORE_REPORTED",
+      "FAILURE_REPORTED"
+    ]
+  },
+  "state": {
+    "mode": "active",
+    "persistence": ".tamv/state/events.jsonl",
+    "heartbeat": "manual-or-scheduled"
+  },
+  "links": {
+    "schema": "tamv/protocol/tamv-federation-v1.schema.json",
+    "bus": "tamv/core/federation-bus.mjs"
+  }
+}
